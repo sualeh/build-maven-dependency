@@ -23,7 +23,7 @@ runs:
 
     - id: checkout-dependency-repo
       name: Checkout dependency repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: ${{ inputs.repository }}
         path: ${{ steps.tmpdir.outputs.checkout_path }}
