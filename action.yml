@@ -21,8 +21,9 @@ runs:
       shell: bash
       run: |
         # Create temporary directory for dependency build
-        TMP_DIR="$(mktemp -d)"
+        TMP_DIR="$(mktemp -d "$RUNNER_TEMP/dependency-XXXXXX")"
         echo "checkout_path=${TMP_DIR}" >> "$GITHUB_OUTPUT"
+        echo "Using checkout path: ${TMP_DIR}"
 
     - id: checkout-dependency-repo
       name: Checkout dependency repo
@@ -37,7 +38,7 @@ runs:
       working-directory: ${{ steps.tmpdir.outputs.checkout_path }}
       run: |
         # Run Apache Maven build
-        pwd
+        echo "Using checkout path: `pwd`"
         mvn \
           --no-transfer-progress \
           --batch-mode \
