@@ -21,7 +21,7 @@ runs:
       shell: bash
       run: |
         # Resolve deterministic dependency checkout path; fail if it already exists
-        CHECKOUT_PATH="./dependency/${{ inputs.repository }}"
+        CHECKOUT_PATH="./target/dependency/${{ inputs.repository }}"
         if [ -e "$CHECKOUT_PATH" ]; then
           echo "Checkout path already exists: $CHECKOUT_PATH" >&2
           exit 1
