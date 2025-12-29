@@ -54,16 +54,32 @@ runs:
           clean install
 
     - id: verify_artifact
-      name: Verify built artifact (optional)
+      name: Verify built artifact
       shell: bash
       if: ${{ inputs.artifact != '' }}
       run: |
-        # Ask Maven to resolve the artifact from the local repository; it fails if the artifact is absent
-        mvn \
-          --no-transfer-progress \
-          --batch-mode \
-          --offline \
-          -Dmaven.repo.local="$HOME/.m2/repository" \
-          -Dartifact="${{ inputs.artifact }}" \
-          -Dtransitive=false \
-          dependency:get
+        # Verify that both JAR and POM exist in the local Maven repository
+        GAV="${{ inputs.artifact }}"
+        IFS=':' read -r GROUP_ID ARTIFACT_ID VERSION PACKAGING <<< "$GAV"
+
+        if [ -z "$GROUP_ID" ] || [ -z "$ARTIFACT_ID" ] || [ -z "$VERSION" ]; then
+          echo "Invalid artifact coordinates: $GAV" >&2
+          exit 1
+        fi
+
+        : "${PACKAGING:=jar}"
+
+        GROUP_PATH=${GROUP_ID//.//}
+        JAR_PATH="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION/${ARTIFACT_ID}-${VERSION}.${PACKAGING}"
+        POM_PATH="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION/${ARTIFACT_ID}-${VERSION}.pom"
+
+        if [ -f "$JAR_PATH" ] && [ -f "$POM_PATH" ]; then
+          echo "✓ GAV $GAV verified:"
+          echo "  JAR: $JAR_PATH ($(du -h \"$JAR_PATH\" | cut -f1))"
+          echo "  POM: $POM_PATH"
+        else
+          echo "✗ GAV $GAV missing:"
+          echo "  JAR: $([ -f \"$JAR_PATH\" ] || echo 'MISSING')"
+          echo "  POM: $([ -f \"$POM_PATH\" ] || echo 'MISSING')"
+          exit 1
+        fi
