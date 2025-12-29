@@ -16,26 +16,34 @@ inputs:
 runs:
   using: composite
   steps:
-    - id: tmpdir
-      name: Resolve temp workspace
+    - id: create_checkout_path
+      name: Create checkout path
       shell: bash
+      env:
+        WORKSPACE_DIR: ${{ runner.workspace }}
       run: |
-        # Create temporary directory for dependency build
-        TMP_DIR="$(mktemp -d "$RUNNER_TEMP/dependency-XXXXXX")"
-        echo "checkout_path=${TMP_DIR}" >> "$GITHUB_OUTPUT"
-        echo "Using checkout path: ${TMP_DIR}"
+        # Resolve deterministic dependency checkout path; fail if it already exists
+        CHECKOUT_PATH="$WORKSPACE_DIR/dependency/${{ inputs.repository }}"
+        if [ -e "$CHECKOUT_PATH" ]; then
+          echo "Checkout path already exists: $CHECKOUT_PATH" >&2
+          exit 1
+        fi
+        mkdir -p "$(dirname "$CHECKOUT_PATH")"
+        mkdir "$CHECKOUT_PATH"
+        echo "checkout_path=${CHECKOUT_PATH}" >> "$GITHUB_OUTPUT"
+        echo "Using checkout path: ${CHECKOUT_PATH}"
 
-    - id: checkout-dependency-repo
+    - id: checkout_dependency_repo
       name: Checkout dependency repo
       uses: actions/checkout@v6
       with:
         repository: ${{ inputs.repository }}
-        path: ${{ steps.tmpdir.outputs.checkout_path }}
+        path: ${{ steps.create_checkout_path.outputs.checkout_path }}
 
     - id: build
       name: Build and install dependency
       shell: bash
-      working-directory: ${{ steps.tmpdir.outputs.checkout_path }}
+      working-directory: ${{ steps.create_checkout_path.outputs.checkout_path }}
       run: |
         # Run Apache Maven build
         echo "Using checkout path: `pwd`"
@@ -46,7 +54,7 @@ runs:
           -Dmaven.javadoc.skip=true \
           clean install
 
-    - id: verify-artifact
+    - id: verify_artifact
       name: Verify built artifact (optional)
       shell: bash
       if: ${{ inputs.artifact != '' }}
