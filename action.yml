@@ -1,5 +1,5 @@
-name: "Build Apache Maven Dependency"
-description: "Checkout a repo, build it, and install to the local Apache Maven repository."
+name: Build Apache Maven Dependency
+description: Checkout a repo, build it, and install to the local Apache Maven repository.
 
 branding:
   icon: more-horizontal
@@ -7,8 +7,11 @@ branding:
 
 inputs:
   repository:
-    description: "GitHub repository in 'owner/name' form"
+    description: GitHub repository in 'owner/name' form
     required: true
+  artifact:
+    description: Artifact coordinates 'groupId:artifactId:version[:packaging]' to verify in local Maven repo
+    required: false
 
 runs:
   using: composite
@@ -34,9 +37,25 @@ runs:
       working-directory: ${{ steps.tmpdir.outputs.checkout_path }}
       run: |
         # Run Apache Maven build
+        pwd
         mvn \
           --no-transfer-progress \
           --batch-mode \
           -DskipTests=true \
           -Dmaven.javadoc.skip=true \
           clean install
+
+    - id: verify-artifact
+      name: Verify built artifact (optional)
+      shell: bash
+      if: ${{ inputs.artifact != '' }}
+      run: |
+        # Ask Maven to resolve the artifact from the local repository; it fails if the artifact is absent
+        mvn \
+          --no-transfer-progress \
+          --batch-mode \
+          --offline \
+          -Dmaven.repo.local="$HOME/.m2/repository" \
+          -Dartifact="${{ inputs.artifact }}" \
+          -Dtransitive=false \
+          dependency:get
