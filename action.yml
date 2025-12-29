@@ -1,0 +1,42 @@
+name: "Build Apache Maven Dependency"
+description: "Checkout a repo, build it, and install to the local Apache Maven repository."
+
+branding:
+  icon: more-horizontal
+  color: purple
+
+inputs:
+  repository:
+    description: "GitHub repository in 'owner/name' form"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - id: tmpdir
+      name: Resolve temp workspace
+      shell: bash
+      run: |
+        # Create temporary directory for dependency build
+        TMP_DIR="$(mktemp -d)"
+        echo "checkout_path=${TMP_DIR}" >> "$GITHUB_OUTPUT"
+
+    - id: checkout-dependency-repo
+      name: Checkout dependency repo
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.repository }}
+        path: ${{ steps.tmpdir.outputs.checkout_path }}
+
+    - id: build
+      name: Build and install dependency
+      shell: bash
+      working-directory: ${{ steps.tmpdir.outputs.checkout_path }}
+      run: |
+        # Run Apache Maven build
+        mvn \
+          --no-transfer-progress \
+          --batch-mode \
+          -DskipTests=true \
+          -Dmaven.javadoc.skip=true \
+          clean install
