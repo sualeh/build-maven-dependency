@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Create Release
@@ -36,5 +39,6 @@ jobs:
         prerelease: false
         make_latest: true
         body: |
-          GitHub Action to Build a Maven Dependency ${{ github.ref_name }} release at last commit ${{ github.sha }}
+          GitHub Action to Build a Maven Dependency
+          ${{ github.ref_name }} release at last commit ${{ github.sha }}
         generate_release_notes: true
