@@ -83,12 +83,9 @@ runs:
         echo "  POM: $POM_PATH"
 
         if [ -f "$JAR_PATH" ] && [ -f "$POM_PATH" ]; then
-          echo "✓ GAV $GAV verified:"
-          echo "  JAR: $JAR_PATH ($(du -h \"$JAR_PATH\" | cut -f1))"
-          echo "  POM: $POM_PATH"
+          echo "✓ GAV $GAV verified"
+          ls -l1 "$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
         else
-          echo "✗ GAV $GAV missing:"
-          echo "  JAR: $([ -f \"$JAR_PATH\" ] || echo 'MISSING')"
-          echo "  POM: $([ -f \"$POM_PATH\" ] || echo 'MISSING')"
+          echo "✗ GAV $GAV missing"
           exit 1
         fi
