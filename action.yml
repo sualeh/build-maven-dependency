@@ -73,6 +73,15 @@ runs:
         JAR_PATH="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION/${ARTIFACT_ID}-${VERSION}.${PACKAGING}"
         POM_PATH="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION/${ARTIFACT_ID}-${VERSION}.pom"
 
+        echo "Resolved artifact coordinates:"
+        echo "  groupId: $GROUP_ID"
+        echo "  artifactId: $ARTIFACT_ID"
+        echo "  version: $VERSION"
+        echo "  packaging: $PACKAGING"
+        echo "Resolved paths:"
+        echo "  JAR: $JAR_PATH"
+        echo "  POM: $POM_PATH"
+
         if [ -f "$JAR_PATH" ] && [ -f "$POM_PATH" ]; then
           echo "✓ GAV $GAV verified:"
           echo "  JAR: $JAR_PATH ($(du -h \"$JAR_PATH\" | cut -f1))"
